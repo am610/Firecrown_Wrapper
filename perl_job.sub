@@ -1,0 +1,36 @@
+#!/bin/bash
+
+#SBATCH -A m1727
+#SBATCH -C cpu
+#SBATCH --qos=debug
+#SBATCH --time=00:03:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=16
+#SBATCH --error=perl_firecrown-%j.err
+#SBATCH -o perl_firecrown.log 
+#SBATCH --mail-user=ayanmitra375@gmail.com
+#SBATCH -J Firecrown
+
+
+module unload gsl/2.5
+module unload cray-fftw/3.3.8.4
+source $CFS/des/zuntz/cosmosis-global/setup-cosmosis-perlmutter
+conda activate /global/u1/a/ayanmitr/cosmosis-perl
+export FIRECROWN_DIR=$PSCRATCH/soft/firecrown
+export FIRECROWN_EXAMPLES_DIR=$PSCRATCH/soft/firecrown/examples
+export CSL_DIR=$PSCRATCH/soft/cosmosis-standard-library
+
+export OMP_NUM_THREADS=1
+
+module unload gcc
+module unload PrgEnv-gnu
+module load PrgEnv-gnu
+module load cmake
+module unload craype-hugepages2M
+
+folder=$(date +%Y%m%d_%H%M%S)
+#srun -n 16 --cpu-bind=cores -c 16 python a.py --mpi # TEST
+#srun -n 1 --cpu-bind=cores -c 2  cosmosis   sn_only.ini
+
+
+srun -n 1 --cpu-bind=cores -c 1 $SNANA_LSST_USERS/kessler/debug/submit_batch_firecrown/NEW_AYAN_DEBUG-3/dist/Firecrown_wrapper_example-2 $HOME/Analysis/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_1/output hubble_diagram.txt covsys_000.txt.gz sn_only.ini
