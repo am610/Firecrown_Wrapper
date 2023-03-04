@@ -129,12 +129,13 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
 
     Key = ["STAGE0", "STAGE1", "STAGE2", "STAGE3", "ABORT_IF_ZERO"]
     dict = {}
-    dict[Key[0]] = []
-    dict[Key[1]] = []
-    dict[Key[2]] = []
-    dict[Key[3]] = []
+    dict[Key[0]] = [" "]
+    dict[Key[1]] = [" "]
+    dict[Key[2]] = [" "]
+    dict[Key[3]] = [" "]
     dict[Key[4]] = []
     dict[Key[4]].append(999)
+    data = {}
     # -------------------------------
 
     # Function Defintions
@@ -142,27 +143,24 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
     # key set to non abort(0) case, guide for sbatch
     def path_error(path):
         if os.path.exists(path):
-            ff = 1
-            update(ff, dict)
+            data["ABORT_IF_ZERO"] = 1
             pass
         else:
-            dict[Key[0]].append("FAILED")
-            #        dict[Key[4]].append(0)
-            ff = 0
-            update(ff, dict)
-            outputs = yaml.dump(dict, file_yaml, default_flow_style=True)
+            dict[Key[0]][0] = {"FAILED"}
+            data["STAGE0"] = "FAILED"
+            data["ABORT_IF_ZERO"] = 0
+            outputs = yaml.dump(data, file_yaml)
             raise FileNotFoundError("{0} path does not exist!".format(path))
 
     def file_error(file):
         if os.path.isfile(file):
-            ff = 1
-            update(ff, dict)
+            data["ABORT_IF_ZERO"] = 1
             pass
         else:
-            dict[Key[0]].append("FAILED")
-            ff = 0
-            update(ff, dict)
-            outputs = yaml.dump(dict, file_yaml, default_flow_style=True)
+            dict[Key[0]][0] = "FAILED"
+            data["STAGE0"] = "FAILED"
+            data["ABORT_IF_ZERO"] = 0
+            outputs = yaml.dump(data, file_yaml)
             raise FileNotFoundError("{0} file does not exist!".format(file))
 
     # ----------------------------
@@ -195,14 +193,13 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
         cov = args.cov
         ini = os.path.split(args.ini)[1]
         # ini_f= args.ini
-
         path_error(path)
         f1 = path + "/" + hd
         file_error(f1)
         f2 = path + "/" + cov
         file_error(f2)
-        dict[Key[0]].append("SUCCESS")
-
+        dict[Key[0]][0] = "SUCCESS"
+        data["STAGE0"] = "SUCCESS"
         # ********************
         # --------------------
 
@@ -243,18 +240,18 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
             print(job1.stderr)
         if job1.returncode != 0:
             os.system('echo "STAGE 1 FAILED *** \nCheck generate_sn_data error logs"')
-            dict[Key[1]].append("FAILED")
-            ff = 0
-            update(ff, dict)
-            outputs = yaml.dump(dict, file_yaml, default_flow_style=True)
+            dict[Key[1]][0] = "FAILED"
+            data["STAGE1"] = "FAILED"
+            data["ABORT_IF_ZERO"] = 0
+            outputs = yaml.dump(data, file_yaml)
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_STAGE_1.time" % (ERROR_PATH), "w") as f:
                 f.write("%s" % executionTime)
             sys.exit("BYE")
         else:
-            dict[Key[1]].append("SUCCESS")
-            ff = 1
-            update(ff, dict)
+            dict[Key[1]][0] = "SUCCESS"
+            data["STAGE1"] = "SUCCESS"
+            data["ABORT_IF_ZERO"] = 1
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_STAGE_1.time" % (ERROR_PATH), "w") as f:
                 f.write("%s" % executionTime)
@@ -305,18 +302,18 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
         job3.wait()
         if job3.returncode != 0:
             os.system('echo "STAGE 2 FAILED *** \nCheck COSMOSIS error logs"')
-            dict[Key[2]].append("FAILED")
-            ff = 0
-            update(ff, dict)
-            outputs = yaml.dump(dict, file_yaml, default_flow_style=True)
+            dict[Key[2]][0] = "FAILED"
+            data["STAGE2"] = "FAILED"
+            data["ABORT_IF_ZERO"] = 0
+            outputs = yaml.dump(data, file_yaml)
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_COSMOSIS.time" % (ERROR_PATH), "w") as f:
                 f.write("%s" % executionTime)
             sys.exit("BYE")
         else:
-            dict[Key[2]].append("SUCCESS")
-            ff = 1
-            update(ff, dict)
+            dict[Key[2]][0] = "SUCCESS"
+            data["STAGE2"] = "SUCCESS"
+            data["ABORT_IF_ZERO"] = 1
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_COSMOSIS.time" % (ERROR_PATH), "w") as f:
                 f.write("%s" % executionTime)
@@ -343,21 +340,21 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
         job4.wait()
         if job4.returncode != 0:
             os.system('echo "STAGE 3 FAILED *** \nCheck PostProcess error logs"')
-            dict[Key[3]].append("FAILED")
-            ff = 0
-            update(ff, dict)
-            outputs = yaml.dump(dict, file_yaml)
+            dict[Key[3]][0] = "FAILED"
+            data["STAGE3"] = "FAILED"
+            data["ABORT_IF_ZERO"] = 0
+            outputs = yaml.dump(data, file_yaml)
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_PostProcess.time" % (ERROR_PATH), "w") as f:
                 f.write("%s" % executionTime)
             sys.exit("BYE")
         else:
-            dict[Key[3]].append("SUCCESS")
-            ff = 1
-            update(ff, dict)
+            dict[Key[3]][0] = "SUCCESS"
+            data["STAGE3"] = "SUCCESS"
+            data["ABORT_IF_ZERO"] = 1
             os.system('echo "STAGE 3 COMPLETE"')
             os.system('echo "ALL DONE"')
-            outputs = yaml.dump(dict, file_yaml)
+            outputs = yaml.dump(data, file_yaml)
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_PostProcess.time" % (ERROR_PATH), "w") as f:
                 f.write("%s" % executionTime)
