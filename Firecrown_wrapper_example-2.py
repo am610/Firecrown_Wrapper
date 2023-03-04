@@ -28,15 +28,17 @@ logging.basicConfig(level=logging.INFO)
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
 
-def update(flag,dict):
-    updict = {"ABORT_IF_ZERO"  : flag}
+
+def update(flag, dict):
+    updict = {"ABORT_IF_ZERO": flag}
     for sub in dict:
         if sub in updict:
-            dict[sub]  = updict[sub]
+            dict[sub] = updict[sub]
     return dict
 
+
 @contextmanager
-#https://stackoverflow.com/questions/7152762/how-to-redirect-print-output-to-a-file
+# https://stackoverflow.com/questions/7152762/how-to-redirect-print-output-to-a-file
 def redirected_stdout(outstream):
     orig_stdout = sys.stdout
     try:
@@ -44,6 +46,7 @@ def redirected_stdout(outstream):
         yield
     finally:
         sys.stdout = orig_stdout
+
 
 # Setting up the 'yaml' file
 class CustomHelpFormatter(argparse.ArgumentDefaultsHelpFormatter):
@@ -56,6 +59,7 @@ class CustomHelpFormatter(argparse.ArgumentDefaultsHelpFormatter):
             else:
                 lines.append(line)
         return lines
+
 
 now = datetime.datetime.now()
 dt_string = now.strftime("%d%m%Y_%H%M%S/")
@@ -89,9 +93,25 @@ parser.add_argument(
     nargs="?",
     help="-p Override cosmosis parameter values ",
 )
+parser.add_argument(
+    "-s",
+    "--summary",
+    type=pathlib.Path,
+    default=OUTPUT_PATH,
+    help="-s SUMMARY.YAML output path (Default: %s)" % (OUTPUT_PATH),
+)
+parser.add_argument(
+    "-i",
+    "--submit",
+    type=pathlib.Path,
+    default=OUTPUT_PATH,
+    help="-s SUBMIT.INFO output path (Default: %s)" % (OUTPUT_PATH),
+)
 args = parser.parse_args()
 
 OUTPUT_PATH = os.path.expandvars(args.outdir)
+SUMMARY_PATH = os.path.expandvars(args.summary)
+SUBMIT_PATH = os.path.expandvars(args.submit)
 SUBDIRER = "/ERROR_LOGS/"
 SUBDIR3 = "/COSMOSIS-CHAINS/"
 SUBDIR4 = "/PLOTS"
@@ -101,11 +121,11 @@ COSMOSIS_PATH = os.path.expandvars(OUTPUT_PATH + SUBDIR3)
 PLOT_PATH = os.path.expandvars(OUTPUT_PATH + SUBDIR4)
 
 p = args.param
-with open(r'%s/SUBMIT.INFO'% (OUTPUT_PATH), 'w') as OF:
+with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
     with redirected_stdout(OF):
         print(
-        "\n\nSTAGE 0 = ALL PATH AND FILES IN ARGUMENTS CHECK\nSTAGE 1 = 'generate_sn_data.py'\nSTAGE 2 = COSMOSIS\nSTAGE 3 = POST PROCESSING (PLOT)\n\n"
-    )
+            "\n\nSTAGE 0 = ALL PATH AND FILES IN ARGUMENTS CHECK\nSTAGE 1 = 'generate_sn_data.py'\nSTAGE 2 = COSMOSIS\nSTAGE 3 = POST PROCESSING (PLOT)\n\n"
+        )
 
     Key = ["STAGE0", "STAGE1", "STAGE2", "STAGE3", "ABORT_IF_ZERO"]
     dict = {}
@@ -117,36 +137,33 @@ with open(r'%s/SUBMIT.INFO'% (OUTPUT_PATH), 'w') as OF:
     dict[Key[4]].append(999)
     # -------------------------------
 
-
     # Function Defintions
 
     # key set to non abort(0) case, guide for sbatch
     def path_error(path):
         if os.path.exists(path):
             ff = 1
-            update(ff,dict)
+            update(ff, dict)
             pass
         else:
             dict[Key[0]].append("FAILED")
-    #        dict[Key[4]].append(0)
-            ff=0
-            update(ff,dict)
+            #        dict[Key[4]].append(0)
+            ff = 0
+            update(ff, dict)
             outputs = yaml.dump(dict, file_yaml, default_flow_style=True)
             raise FileNotFoundError("{0} path does not exist!".format(path))
 
-
     def file_error(file):
         if os.path.isfile(file):
-            ff=1
-            update(ff,dict)
+            ff = 1
+            update(ff, dict)
             pass
         else:
             dict[Key[0]].append("FAILED")
-            ff=0
-            update(ff,dict)
+            ff = 0
+            update(ff, dict)
             outputs = yaml.dump(dict, file_yaml, default_flow_style=True)
             raise FileNotFoundError("{0} file does not exist!".format(file))
-
 
     # ----------------------------
 
@@ -160,11 +177,10 @@ with open(r'%s/SUBMIT.INFO'% (OUTPUT_PATH), 'w') as OF:
     if not os.path.exists(PLOT_PATH):
         os.makedirs(PLOT_PATH, exist_ok=True)
 
-
     """
     Checking Files exists
     """
-    with open(r"%s/SUMMARY.YAML" % (OUTPUT_PATH), "w") as file_yaml:
+    with open(r"%s/SUMMARY.YAML" % (SUMMARY_PATH), "w") as file_yaml:
         with redirected_stdout(OF):
             print("\n#Required Info")
             print("CWR:", os.getcwd())
@@ -208,7 +224,9 @@ with open(r'%s/SUBMIT.INFO'% (OUTPUT_PATH), 'w') as OF:
             "%sgenerate_sn_data_output_ERROR_%s.err" % (ERROR_PATH, ini), "wb"
         ) as gen_file_e:
             job1 = Popen(
-                "python " + "$FIRECROWN_EXAMPLES_DIR/srd_sn/generate_sn_data.py " + Vector,
+                "python "
+                + "$FIRECROWN_EXAMPLES_DIR/srd_sn/generate_sn_data.py "
+                + Vector,
                 shell=True,
                 text=True,
                 stdout=gen_file,
@@ -226,8 +244,8 @@ with open(r'%s/SUBMIT.INFO'% (OUTPUT_PATH), 'w') as OF:
         if job1.returncode != 0:
             os.system('echo "STAGE 1 FAILED *** \nCheck generate_sn_data error logs"')
             dict[Key[1]].append("FAILED")
-            ff=0
-            update(ff,dict)
+            ff = 0
+            update(ff, dict)
             outputs = yaml.dump(dict, file_yaml, default_flow_style=True)
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_STAGE_1.time" % (ERROR_PATH), "w") as f:
@@ -235,8 +253,8 @@ with open(r'%s/SUBMIT.INFO'% (OUTPUT_PATH), 'w') as OF:
             sys.exit("BYE")
         else:
             dict[Key[1]].append("SUCCESS")
-            ff=1
-            update(ff,dict)
+            ff = 1
+            update(ff, dict)
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_STAGE_1.time" % (ERROR_PATH), "w") as f:
                 f.write("%s" % executionTime)
@@ -288,8 +306,8 @@ with open(r'%s/SUBMIT.INFO'% (OUTPUT_PATH), 'w') as OF:
         if job3.returncode != 0:
             os.system('echo "STAGE 2 FAILED *** \nCheck COSMOSIS error logs"')
             dict[Key[2]].append("FAILED")
-            ff=0
-            update(ff,dict)
+            ff = 0
+            update(ff, dict)
             outputs = yaml.dump(dict, file_yaml, default_flow_style=True)
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_COSMOSIS.time" % (ERROR_PATH), "w") as f:
@@ -297,8 +315,8 @@ with open(r'%s/SUBMIT.INFO'% (OUTPUT_PATH), 'w') as OF:
             sys.exit("BYE")
         else:
             dict[Key[2]].append("SUCCESS")
-            ff=1
-            update(ff,dict)
+            ff = 1
+            update(ff, dict)
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_COSMOSIS.time" % (ERROR_PATH), "w") as f:
                 f.write("%s" % executionTime)
@@ -326,8 +344,8 @@ with open(r'%s/SUBMIT.INFO'% (OUTPUT_PATH), 'w') as OF:
         if job4.returncode != 0:
             os.system('echo "STAGE 3 FAILED *** \nCheck PostProcess error logs"')
             dict[Key[3]].append("FAILED")
-            ff=0
-            update(ff,dict)
+            ff = 0
+            update(ff, dict)
             outputs = yaml.dump(dict, file_yaml)
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_PostProcess.time" % (ERROR_PATH), "w") as f:
@@ -335,8 +353,8 @@ with open(r'%s/SUBMIT.INFO'% (OUTPUT_PATH), 'w') as OF:
             sys.exit("BYE")
         else:
             dict[Key[3]].append("SUCCESS")
-            ff=1
-            update(ff,dict)
+            ff = 1
+            update(ff, dict)
             os.system('echo "STAGE 3 COMPLETE"')
             os.system('echo "ALL DONE"')
             outputs = yaml.dump(dict, file_yaml)
