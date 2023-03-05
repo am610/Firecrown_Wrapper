@@ -29,14 +29,6 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
 
 
-def update(flag, dict):
-    updict = {"ABORT_IF_ZERO": flag}
-    for sub in dict:
-        if sub in updict:
-            dict[sub] = updict[sub]
-    return dict
-
-
 @contextmanager
 # https://stackoverflow.com/questions/7152762/how-to-redirect-print-output-to-a-file
 def redirected_stdout(outstream):
@@ -128,13 +120,6 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
         )
 
     Key = ["STAGE0", "STAGE1", "STAGE2", "STAGE3", "ABORT_IF_ZERO"]
-    dict = {}
-    dict[Key[0]] = [" "]
-    dict[Key[1]] = [" "]
-    dict[Key[2]] = [" "]
-    dict[Key[3]] = [" "]
-    dict[Key[4]] = []
-    dict[Key[4]].append(999)
     data = {}
     # -------------------------------
 
@@ -146,7 +131,6 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
             data["ABORT_IF_ZERO"] = 1
             pass
         else:
-            dict[Key[0]][0] = {"FAILED"}
             data["STAGE0"] = "FAILED"
             data["ABORT_IF_ZERO"] = 0
             outputs = yaml.dump(data, file_yaml)
@@ -157,7 +141,6 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
             data["ABORT_IF_ZERO"] = 1
             pass
         else:
-            dict[Key[0]][0] = "FAILED"
             data["STAGE0"] = "FAILED"
             data["ABORT_IF_ZERO"] = 0
             outputs = yaml.dump(data, file_yaml)
@@ -198,7 +181,6 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
         file_error(f1)
         f2 = path + "/" + cov
         file_error(f2)
-        dict[Key[0]][0] = "SUCCESS"
         data["STAGE0"] = "SUCCESS"
         # ********************
         # --------------------
@@ -240,7 +222,6 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
             print(job1.stderr)
         if job1.returncode != 0:
             os.system('echo "STAGE 1 FAILED *** \nCheck generate_sn_data error logs"')
-            dict[Key[1]][0] = "FAILED"
             data["STAGE1"] = "FAILED"
             data["ABORT_IF_ZERO"] = 0
             outputs = yaml.dump(data, file_yaml)
@@ -249,7 +230,6 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
                 f.write("%s" % executionTime)
             sys.exit("BYE")
         else:
-            dict[Key[1]][0] = "SUCCESS"
             data["STAGE1"] = "SUCCESS"
             data["ABORT_IF_ZERO"] = 1
             executionTime = np.array(round((time.time() - startTime), 2))
@@ -302,7 +282,6 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
         job3.wait()
         if job3.returncode != 0:
             os.system('echo "STAGE 2 FAILED *** \nCheck COSMOSIS error logs"')
-            dict[Key[2]][0] = "FAILED"
             data["STAGE2"] = "FAILED"
             data["ABORT_IF_ZERO"] = 0
             outputs = yaml.dump(data, file_yaml)
@@ -311,7 +290,6 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
                 f.write("%s" % executionTime)
             sys.exit("BYE")
         else:
-            dict[Key[2]][0] = "SUCCESS"
             data["STAGE2"] = "SUCCESS"
             data["ABORT_IF_ZERO"] = 1
             executionTime = np.array(round((time.time() - startTime), 2))
@@ -340,7 +318,6 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
         job4.wait()
         if job4.returncode != 0:
             os.system('echo "STAGE 3 FAILED *** \nCheck PostProcess error logs"')
-            dict[Key[3]][0] = "FAILED"
             data["STAGE3"] = "FAILED"
             data["ABORT_IF_ZERO"] = 0
             outputs = yaml.dump(data, file_yaml)
@@ -349,7 +326,6 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
                 f.write("%s" % executionTime)
             sys.exit("BYE")
         else:
-            dict[Key[3]][0] = "SUCCESS"
             data["STAGE3"] = "SUCCESS"
             data["ABORT_IF_ZERO"] = 1
             os.system('echo "STAGE 3 COMPLETE"')
