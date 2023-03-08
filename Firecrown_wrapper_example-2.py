@@ -161,7 +161,7 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
     """
     Checking Files exists
     """
-    with open(r"%s/SUMMARY.YAML" % (SUMMARY_PATH), "w") as file_yaml:
+    with open(r"%s" % (SUMMARY_PATH), "w") as file_yaml:
         with redirected_stdout(OF):
             print("\n#Required Info")
             print("CWR:", os.getcwd())
