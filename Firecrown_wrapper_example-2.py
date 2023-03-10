@@ -89,7 +89,7 @@ parser.add_argument(
     "-s",
     "--summary",
     type=pathlib.Path,
-    default=OUTPUT_PATH+"/SUMMARY.YAML",
+    default=OUTPUT_PATH + "/SUMMARY.YAML",
     help="-s SUMMARY.YAML output path (Default: %s)" % (OUTPUT_PATH),
 )
 parser.add_argument(
@@ -102,7 +102,6 @@ parser.add_argument(
 args = parser.parse_args()
 
 OUTPUT_PATH = os.path.expandvars(args.outdir)
-print("XX output path",OUTPUT_PATH)
 SUMMARY_PATH = os.path.expandvars(args.summary)
 SUBMIT_PATH = os.path.expandvars(args.submit)
 SUBDIRER = "/ERROR_LOGS/"
@@ -266,7 +265,7 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
             + arg2
             + COSMOSIS_PATH
             + os.path.splitext(ini)[0]
-            + ".txt"  # --mpi"
+            + ".txt  --mpi"
         )
         with redirected_stdout(OF):
             print("Cosmosis Input Vector:", Vector)
