@@ -89,7 +89,7 @@ parser.add_argument(
     "-s",
     "--summary",
     type=pathlib.Path,
-    default=OUTPUT_PATH,
+    default=OUTPUT_PATH+"/SUMMARY.YAML",
     help="-s SUMMARY.YAML output path (Default: %s)" % (OUTPUT_PATH),
 )
 parser.add_argument(
@@ -102,6 +102,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 OUTPUT_PATH = os.path.expandvars(args.outdir)
+print("XX output path",OUTPUT_PATH)
 SUMMARY_PATH = os.path.expandvars(args.summary)
 SUBMIT_PATH = os.path.expandvars(args.submit)
 SUBDIRER = "/ERROR_LOGS/"
@@ -303,6 +304,8 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
         jobname = "cosmosis-postprocess"
         arg = "-o "
         Vector = " " + ini + " " + arg + PLOT_PATH
+        with redirected_stdout(OF):
+            print("cosmosis-postprocess Input Vector:", Vector)
         with open(
             "%sPostProcess_output_%s.log" % (ERROR_PATH, ini), "wb"
         ) as file_post, open(
