@@ -119,7 +119,15 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
             "\n\nSTAGE 0 = ALL PATH AND FILES IN ARGUMENTS CHECK\nSTAGE 1 = 'generate_sn_data.py'\nSTAGE 2 = COSMOSIS\nSTAGE 3 = POST PROCESSING (PLOT)\n\n"
         )
 
-    Key = ["STAGE0", "STAGE1", "STAGE2", "STAGE3", "ABORT_IF_ZERO"]
+    Key = [
+        "STAGE0",
+        "STAGE1",
+        "STAGE2",
+        "STAGE3",
+        "ABORT_IF_ZERO",
+        "Ndof",
+        "CPU_MINUTES",
+    ]
     data = {}
     # -------------------------------
 
@@ -128,21 +136,21 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
     # key set to non abort(0) case, guide for sbatch
     def path_error(path):
         if os.path.exists(path):
-            data["ABORT_IF_ZERO"] = 1
+            data[Key[4]] = 1
             pass
         else:
-            data["STAGE0"] = "FAILED"
-            data["ABORT_IF_ZERO"] = 0
+            data[Key[0]] = "FAILED"
+            data[Key[4]] = 0
             outputs = yaml.dump(data, file_yaml)
             raise FileNotFoundError("{0} path does not exist!".format(path))
 
     def file_error(file):
         if os.path.isfile(file):
-            data["ABORT_IF_ZERO"] = 1
+            data[Key[4]] = 1
             pass
         else:
-            data["STAGE0"] = "FAILED"
-            data["ABORT_IF_ZERO"] = 0
+            data[Key[0]] = "FAILED"
+            data[Key[4]] = 0
             outputs = yaml.dump(data, file_yaml)
             raise FileNotFoundError("{0} file does not exist!".format(file))
 
@@ -181,7 +189,7 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
         file_error(f1)
         f2 = path + "/" + cov
         file_error(f2)
-        data["STAGE0"] = "SUCCESS"
+        data[Key[0]] = "SUCCESS"
         # ********************
         # --------------------
 
@@ -222,16 +230,16 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
             print(job1.stderr)
         if job1.returncode != 0:
             os.system('echo "STAGE 1 FAILED *** \nCheck generate_sn_data error logs"')
-            data["STAGE1"] = "FAILED"
-            data["ABORT_IF_ZERO"] = 0
+            data[Key[1]] = "FAILED"
+            data[Key[4]] = 0
             outputs = yaml.dump(data, file_yaml)
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_STAGE_1.time" % (ERROR_PATH), "w") as f:
                 f.write("%s" % executionTime)
             sys.exit("BYE")
         else:
-            data["STAGE1"] = "SUCCESS"
-            data["ABORT_IF_ZERO"] = 1
+            data[Key[1]] = "SUCCESS"
+            data[Key[4]] = 1
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_STAGE_1.time" % (ERROR_PATH), "w") as f:
                 f.write("%s" % executionTime)
@@ -282,16 +290,16 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
         job3.wait()
         if job3.returncode != 0:
             os.system('echo "STAGE 2 FAILED *** \nCheck COSMOSIS error logs"')
-            data["STAGE2"] = "FAILED"
-            data["ABORT_IF_ZERO"] = 0
+            data[Key[2]] = "FAILED"
+            data[Key[4]] = 0
             outputs = yaml.dump(data, file_yaml)
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_COSMOSIS.time" % (ERROR_PATH), "w") as f:
                 f.write("%s" % executionTime)
             sys.exit("BYE")
         else:
-            data["STAGE2"] = "SUCCESS"
-            data["ABORT_IF_ZERO"] = 1
+            data[Key[2]] = "SUCCESS"
+            data[Key[4]] = 1
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_COSMOSIS.time" % (ERROR_PATH), "w") as f:
                 f.write("%s" % executionTime)
@@ -320,16 +328,22 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
         job4.wait()
         if job4.returncode != 0:
             os.system('echo "STAGE 3 FAILED *** \nCheck PostProcess error logs"')
-            data["STAGE3"] = "FAILED"
-            data["ABORT_IF_ZERO"] = 0
+            data[Key[3]] = "FAILED"
+            data[Key[4]] = 0
             outputs = yaml.dump(data, file_yaml)
             executionTime = np.array(round((time.time() - startTime), 2))
             with open("%sTimer_PostProcess.time" % (ERROR_PATH), "w") as f:
                 f.write("%s" % executionTime)
             sys.exit("BYE")
         else:
-            data["STAGE3"] = "SUCCESS"
-            data["ABORT_IF_ZERO"] = 1
+            data[Key[3]] = "SUCCESS"
+            data[Key[4]] = 1
+            """
+            # "XXX"
+            data["Ndof"] = 99
+            data["CPU_MINUTES"] = 10
+            # "XXX"
+            """
             os.system('echo "STAGE 3 COMPLETE"')
             os.system('echo "ALL DONE"')
             outputs = yaml.dump(data, file_yaml)
