@@ -92,28 +92,35 @@ parser.add_argument(
     default=OUTPUT_PATH + "/SUMMARY.YAML",
     help="-s SUMMARY.YAML output path (Default: %s)" % (OUTPUT_PATH),
 )
+"""
 parser.add_argument(
     "-i",
-    "--submit",
+    "--info",
     type=pathlib.Path,
-    default=OUTPUT_PATH,
-    help="-s SUBMIT.INFO output path (Default: %s)" % (OUTPUT_PATH),
+    default=COSMOSIS_PATH + "INPUT.INFO",
+    help="-i INPUT.INFO output path (Default: %s)" % (OUTPUT_PATH),
 )
+"""
 args = parser.parse_args()
 
-OUTPUT_PATH = os.path.expandvars(args.outdir)
-SUMMARY_PATH = os.path.expandvars(args.summary)
-SUBMIT_PATH = os.path.expandvars(args.submit)
 SUBDIRER = "/ERROR_LOGS/"
 SUBDIR3 = "/COSMOSIS-CHAINS/"
 SUBDIR4 = "/PLOTS"
-
+OUTPUT_PATH = os.path.expandvars(args.outdir)
+SUMMARY_PATH = os.path.expandvars(args.summary)
+# SUBMIT_PATH = os.path.expandvars(args.info)
 ERROR_PATH = os.path.expandvars(OUTPUT_PATH + SUBDIRER)
 COSMOSIS_PATH = os.path.expandvars(OUTPUT_PATH + SUBDIR3)
 PLOT_PATH = os.path.expandvars(OUTPUT_PATH + SUBDIR4)
-
+try:
+    os.makedirs(COSMOSIS_PATH)
+except FileExistsError:
+    # directory already exists
+    pass
+SUBMIT_PATH = COSMOSIS_PATH + "INPUT.INFO"
 p = args.param
-with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
+
+with open(r"%s" % (SUBMIT_PATH), "w", buffering=1) as OF:
     with redirected_stdout(OF):
         print(
             "\n\nSTAGE 0 = ALL PATH AND FILES IN ARGUMENTS CHECK\nSTAGE 1 = 'generate_sn_data.py'\nSTAGE 2 = COSMOSIS\nSTAGE 3 = POST PROCESSING (PLOT)\n\n"
@@ -127,6 +134,10 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
         "ABORT_IF_ZERO",
         "Ndof",
         "CPU_MINUTES",
+        "chi2",
+        "sigint",
+        "label",
+        "BLIND",
     ]
     data = {}
     # -------------------------------
@@ -169,7 +180,7 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
     """
     Checking Files exists
     """
-    with open(r"%s" % (SUMMARY_PATH), "w") as file_yaml:
+    with open(r"%s" % (SUMMARY_PATH), "w", buffering=1) as file_yaml:
         with redirected_stdout(OF):
             print("\n#Required Info")
             print("CWR:", os.getcwd())
@@ -309,8 +320,8 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
         # cosmosis-postprocess ${ini} # -o OUTDIR
         startTime = time.time()
         jobname = "cosmosis-postprocess"
-        arg = "-o "
-        Vector = " " + ini + " " + arg + PLOT_PATH
+        arg = " -o "
+        Vector = " " + COSMOSIS_PATH + ini.replace(".ini", ".txt") + arg + PLOT_PATH
         with redirected_stdout(OF):
             print("cosmosis-postprocess Input Vector:", Vector)
         with open(
@@ -338,12 +349,16 @@ with open(r"%s/SUBMIT.INFO" % (SUBMIT_PATH), "w") as OF:
         else:
             data[Key[3]] = "SUCCESS"
             data[Key[4]] = 1
-            """
+            # """
             # "XXX"
             data["Ndof"] = 99
             data["CPU_MINUTES"] = 10
+            data["chi2"] = 22
+            data["sigint"] = 0.0
+            data["label"] = "none"
+            data["BLIND"] = 0
             # "XXX"
-            """
+            # """
             os.system('echo "STAGE 3 COMPLETE"')
             os.system('echo "ALL DONE"')
             outputs = yaml.dump(data, file_yaml)
