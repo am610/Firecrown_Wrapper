@@ -113,13 +113,13 @@ Save the above code in a file `test.sh` and then from perlmutter terminal submit
 	    /global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+submit_batch_jobs/Cosmosis_Input_Scripts/sn_planck.ini
 	    ENV_REQUIRE: FIRECROWN_DIR FIRECROWN_EXAMPLES_DIR CSL_DIR
 	    OUTDIR: output_firecrown_sn_cmb WFITAVG:
-	   #- LSST_BINNED_COV_BBC_SIMDATA_SPECZ
+	    #- LSST_BINNED_COV_BBC_SIMDATA_SPECZ
 	    - LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ
 	    COVOPT:  ALL NOSYS INPDIR: -
 	    /pscratch/sd/d/desctd/PIPPIN_OUTPUT/PLASTICC_COMBINED_PUBLISHED/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_1/output
 	    -
 	    /pscratch/sd/d/desctd/PIPPIN_OUTPUT/PLASTICC_COMBINED_PUBLISHED/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_2/output
-	  ##END_YAML```
+	  ##END_YAML
     
 
 Launch the job : `submit_batch_jobs.sh test.yaml`
